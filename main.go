@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -65,15 +67,19 @@ func main() {
 			Usage: "Serve address",
 		},
 		cli.StringFlag{
+			Name:  "proxy, p",
+			Usage: "Proxy (SOCKS or SHADOWSOCKS) Server for HTTP GET",
+		},
+		cli.StringFlag{
 			Name:  "endpoint",
 			Value: "https://dns.google.com/resolve",
 			Usage: "Google DNS-over-HTTPS endpoint url",
 		},
-		cli.StringFlag{
-			Name:  "endpoint-ips",
+		cli.StringSliceFlag{
+			Name:  "endpoint-ips, eip",
 			Usage: "IPs of the Google DNS-over-HTTPS endpoint; if provided, endpoint lookup skip",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:  "dns-servers, d",
 			Usage: "DNS Servers used to look up the endpoint; system default is used if absent.",
 		},
@@ -108,18 +114,29 @@ func main() {
 			cli.ShowAppHelp(c)
 			os.Exit(0)
 		}
-		endPtIPs, err := gdns.CSVtoIPs(c.String("endpoint-ips"))
-		if err != nil {
-			glog.V(LFATAL).Infof("error parsing endpoint-ips: %v", err)
-		}
-		dnsIPs, err := gdns.CSVtoEndpoints(c.String("dns-servers"))
-		if err != nil {
-			glog.V(LFATAL).Infof("error parsing dns-servers: %v", err)
-		}
+
+		gdnsOPT.PROXY = c.String("proxy")
 		gdnsOPT.EDNS = c.String("edns")
 		gdnsOPT.Pad = !c.Bool("no-pad")
-		gdnsOPT.DNSServers = dnsIPs
-		gdnsOPT.EndpointIPs = endPtIPs
+
+		for _, eip := range c.StringSlice("endpoint-ips") {
+			if ip := net.ParseIP(eip); ip == nil {
+				glog.V(LERROR).Infof("%+v", fmt.Errorf("unable to parse IP from string %s", eip))
+			} else {
+				gdnsOPT.EndpointIPs = append(gdnsOPT.EndpointIPs, ip)
+			}
+		}
+		glog.V(LDEBUG).Infof("EndpointIPs%+v", gdnsOPT.EndpointIPs)
+
+		for _, dns := range c.StringSlice("dns-servers") {
+			if d, err := gdns.ParseEndpoint(dns, 53); err != nil {
+				glog.V(LERROR).Infof("%+v", err)
+			} else {
+				gdnsOPT.DNSServers = append(gdnsOPT.DNSServers, d)
+			}
+		}
+		glog.V(LDEBUG).Infof("DNSServers%+v", gdnsOPT.DNSServers)
+
 		return nil
 	}
 	app.Flags = append(app.Flags, glogGangstaFlags...)

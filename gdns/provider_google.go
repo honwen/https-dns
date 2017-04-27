@@ -8,9 +8,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
+	"golang.org/x/net/proxy"
+
+	ss "github.com/shadowsocks/shadowsocks-go/shadowsocks"
 )
 
 const (
@@ -102,6 +106,9 @@ type GDNSOptions struct {
 	DNSServers Endpoints
 	// Extension mechanisms for DNS
 	EDNS string
+	// PROXY for http get
+	// Support SOCKS5 and SHADOWSOCKS
+	PROXY string
 }
 
 // NewGDNSProvider creates a GDNSProvider
@@ -149,6 +156,34 @@ func NewGDNSProvider(endpoint string, opts *GDNSOptions) (*GDNSProvider, error) 
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		TLSClientConfig:       &tls.Config{ServerName: g.url.Host},
+	}
+
+	if proxyURL, err := url.Parse(opts.PROXY); err != nil {
+		glog.V(LERROR).Infof("proxyURL = url.Parse(): %s", err)
+	} else {
+		switch strings.ToUpper(proxyURL.Scheme) {
+		case "SOCKS", "SOCKS5":
+			if dialer, err := proxy.SOCKS5("tcp", proxyURL.Host, nil, proxy.Direct); err != nil {
+				glog.V(LERROR).Infof("proxy.SOCKS5(): %s", err)
+			} else {
+				glog.V(LINFO).Infof("Proxy %s", proxyURL)
+				tr.Proxy, tr.DialContext = nil, nil
+				tr.Dial = dialer.Dial
+			}
+		case "SS", "SHADOWSOCKS":
+			if proxyURL.User != nil {
+				server, method := proxyURL.Host, proxyURL.User.Username()
+				server, method = strings.ToLower(server), strings.ToLower(method)
+				password, _ := proxyURL.User.Password()
+				if cipher, err := ss.NewCipher(method, password); err != nil {
+					glog.V(LERROR).Infof("ss.NewCipher(): %s", err)
+				} else {
+					glog.V(LINFO).Infof("Proxy %s", proxyURL)
+					tr.Proxy, tr.DialContext = nil, nil
+					tr.Dial = func(_, addr string) (net.Conn, error) { return ss.Dial(addr, server, cipher.Copy()) }
+				}
+			}
+		}
 	}
 	g.client = &http.Client{Transport: tr}
 
