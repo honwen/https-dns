@@ -41,12 +41,13 @@ COMMANDS:
 
 GLOBAL OPTIONS:
    --listen value, -l value           Serve address (default: ":5300")
-   --proxy value, -p value            Proxy (SOCKS or SHADOWSOCKS) for HTTP GET
+   --proxy value, -p value            Proxy (SOCKS or SHADOWSOCKS) Server for HTTP GET
    --endpoint value                   Google DNS-over-HTTPS endpoint url (default: "https://dns.google.com/resolve")
    --endpoint-ips value, --eip value  IPs of the Google DNS-over-HTTPS endpoint; if provided, endpoint lookup skip
    --dns-servers value, -d value      DNS Servers used to look up the endpoint; system default is used if absent.
    --edns value, -e value             Extension mechanisms for DNS (EDNS) is parameters of the Domain Name System (DNS) protocol.
-   --no-pad                           Disable padding of Google DNS-over-HTTPS requests to identical length
+   --no-pad, -N                       Disable padding of Google DNS-over-HTTPS requests to identical length
+   --insecure, -I                     Disable SSL/TLS Certificate check (for some OS without ca-certificates)
    --udp, -U                          Listen on UDP
    --tcp, -T                          Listen on TCP
    -V value                           log level for V logs (default: 2)

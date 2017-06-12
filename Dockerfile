@@ -1,7 +1,7 @@
 FROM alpine:edge
 MAINTAINER CHENHW2 <https://github.com/chenhw2>
 
-ARG BIN_URL=https://github.com/chenhw2/google-https-dns/releases/download/v20170427/google-https-dns_linux-amd64-20170427.tar.gz
+ARG BIN_URL=https://github.com/chenhw2/google-https-dns/releases/download/v20170612/google-https-dns_linux-amd64-20170612.tar.gz
 
 RUN apk add --update --no-cache wget supervisor ca-certificates \
     && update-ca-certificates \
