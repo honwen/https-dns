@@ -97,6 +97,8 @@ type GDNSResponse struct {
 type GDNSOptions struct {
 	// Pad specifies if a DNS request should be padded to a fixed length
 	Pad bool
+	// Secure specifies if a DNS request should check ca-certificates
+	Secure bool
 	// EndpointIPs is a list of IPs to be used as the GDNS endpoint, avoiding
 	// DNS lookups in the case where they are provided. One is chosen randomly
 	// for each request.
@@ -155,7 +157,10 @@ func NewGDNSProvider(endpoint string, opts *GDNSOptions) (*GDNSProvider, error) 
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{ServerName: g.url.Host},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: !opts.Secure,
+			ServerName:         g.url.Host,
+		},
 	}
 
 	if proxyURL, err := url.Parse(opts.PROXY); err != nil {

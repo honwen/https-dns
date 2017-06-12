@@ -88,8 +88,12 @@ func main() {
 			Usage: "Extension mechanisms for DNS (EDNS) is parameters of the Domain Name System (DNS) protocol.",
 		},
 		cli.BoolFlag{
-			Name:  "no-pad",
+			Name:  "no-pad, N",
 			Usage: "Disable padding of Google DNS-over-HTTPS requests to identical length",
+		},
+		cli.BoolFlag{
+			Name:  "insecure, I",
+			Usage: "Disable SSL/TLS Certificate check (for some OS without ca-certificates)",
 		},
 		cli.BoolFlag{
 			Name:  "udp, U",
@@ -118,6 +122,7 @@ func main() {
 		gdnsOPT.PROXY = c.String("proxy")
 		gdnsOPT.EDNS = c.String("edns")
 		gdnsOPT.Pad = !c.Bool("no-pad")
+		gdnsOPT.Secure = !c.Bool("insecure")
 
 		for _, eip := range c.StringSlice("endpoint-ips") {
 			if ip := net.ParseIP(eip); ip == nil {
