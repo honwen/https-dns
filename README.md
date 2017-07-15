@@ -18,7 +18,7 @@
 $ docker pull chenhw2/google-https-dns
 
 $ docker run -d \
-    -e "Args=-edns 0.0.0.0/0" \
+    -e "ARGS=-d 8.8.8.8 --edns 0.0.0.0/0" \
     -p "5300:5300/udp" \
     -p "5300:5300/tcp" \
     chenhw2/google-https-dns
