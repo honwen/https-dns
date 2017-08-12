@@ -14,7 +14,7 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/proxy"
 
-	ss "github.com/shadowsocks/shadowsocks-go/shadowsocks"
+	ss "github.com/jackyyf/go-shadowsocks2/proxy"
 )
 
 const (
@@ -180,12 +180,12 @@ func NewGDNSProvider(endpoint string, opts *GDNSOptions) (*GDNSProvider, error) 
 				server, method := proxyURL.Host, proxyURL.User.Username()
 				server, method = strings.ToLower(server), strings.ToLower(method)
 				password, _ := proxyURL.User.Password()
-				if cipher, err := ss.NewCipher(method, password); err != nil {
-					glog.V(LERROR).Infof("ss.NewCipher(): %s", err)
+				if ssDialer, err := ss.NewDialer(server, method, password); err != nil {
+					glog.V(LERROR).Infof("ss.NewDialer(): %s", err)
 				} else {
 					glog.V(LINFO).Infof("Proxy %s", proxyURL)
 					tr.Proxy, tr.DialContext = nil, nil
-					tr.Dial = func(_, addr string) (net.Conn, error) { return ss.Dial(addr, server, cipher.Copy()) }
+					tr.Dial = ssDialer.Dial
 				}
 			}
 		}
