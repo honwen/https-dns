@@ -1,13 +1,12 @@
+FROM golang:alpine as builder
+RUN apk add --update git
+RUN go get github.com/chenhw2/google-https-dns
+
 FROM chenhw2/alpine:base
 MAINTAINER CHENHW2 <https://github.com/chenhw2>
 
-ARG VER=20170715
-ARG URL=https://github.com/chenhw2/google-https-dns/releases/download/v$VER/google-https-dns_linux-amd64-$VER.tar.gz
-
-RUN mkdir -p /usr/bin \
-    && cd /usr/bin \
-    && wget -qO- ${URL} | tar xz \
-    && mv google-https-dns_* google-https-dns
+# /usr/bin/google-https-dns
+COPY --from=builder /go/bin /usr/bin
 
 USER nobody
 
