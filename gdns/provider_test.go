@@ -17,9 +17,9 @@ func TestDNSRRTypeA(t *testing.T) {
 		Data: "10.10.10.1",
 	}
 
-	rr, err := r.RR()
+	rr, err := r.DNSRR()
 	if err != nil {
-		t.Errorf("Parse RR: %v", err)
+		t.Fatal(err)
 	}
 
 	v, ok := rr.(*dns.A)
@@ -49,9 +49,9 @@ func TestDNSRRTypeMX(t *testing.T) {
 		Data: "10 mail.who.wut.co.jp",
 	}
 
-	rr, err := r.RR()
+	rr, err := r.DNSRR()
 	if err != nil {
-		t.Errorf("Parse RR: %v", err)
+		t.Fatal(err)
 	}
 
 	v, ok := rr.(*dns.MX)
@@ -84,9 +84,9 @@ func TestDNSRRTypeCNAME(t *testing.T) {
 		Data: "omg.wtf.bbq",
 	}
 
-	rr, err := r.RR()
+	rr, err := r.DNSRR()
 	if err != nil {
-		t.Errorf("Parse RR: %v", err)
+		t.Fatal(err)
 	}
 
 	v, ok := rr.(*dns.CNAME)
@@ -116,9 +116,9 @@ func TestDNSRRTypeAAAA(t *testing.T) {
 		Data: "::1",
 	}
 
-	rr, err := r.RR()
+	rr, err := r.DNSRR()
 	if err != nil {
-		t.Errorf("Parse RR: %v", err)
+		t.Fatal(err)
 	}
 
 	v, ok := rr.(*dns.AAAA)
