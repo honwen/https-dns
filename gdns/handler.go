@@ -22,9 +22,25 @@ func NewHandler(provider Provider, options *HandlerOptions) *Handler {
 // Handle handles a DNS request
 func (h *Handler) Handle(w dns.ResponseWriter, r *dns.Msg) {
 	q := DNSQuestion{
-		Name: r.Question[0].Name,
-		Type: r.Question[0].Qtype,
+		Name:   r.Question[0].Name,
+		Type:   r.Question[0].Qtype,
+		Subnet: nil,
 	}
+
+	edns := r.IsEdns0()
+	if edns != nil {
+		for _, opt := range edns.Option {
+			if opt.Option() == dns.EDNS0SUBNET {
+				subnet, ok := opt.(*dns.EDNS0_SUBNET)
+				if ok {
+					q.Subnet = subnet
+				} else {
+					glog.V(LERROR).Infoln("parse edns-client-subnet failed", opt.Option())
+				}
+			}
+		}
+	}
+
 	switch q.Type {
 	case dns.TypeANY:
 		glog.V(LINFO).Infoln("request-Blocked", q.Name, dns.TypeToString[q.Type])
@@ -63,7 +79,7 @@ func (h *Handler) Handle(w dns.ResponseWriter, r *dns.Msg) {
 	// Parse google RRs to DNS RRs
 	answers := transformRR(dnsResp.Answer, "answer")
 	authorities := transformRR(dnsResp.Authority, "authority")
-	extras := transformRR(dnsResp.Extra, "extra")
+	extras := dnsResp.Extra
 
 	resp := dns.Msg{
 		MsgHdr: dns.MsgHdr{
