@@ -6,8 +6,9 @@ import (
 
 // DNSQuestion represents a DNS question to be resolved by a DNS server
 type DNSQuestion struct {
-	Name string `json:"name,omitempty"`
-	Type uint16 `json:"type,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Type   uint16 `json:"type,omitempty"`
+	Subnet *dns.EDNS0_SUBNET `json:"subnet,omitempty"`
 }
 
 // DNSRR represents a DNS record, part of a response to a DNSQuestion
@@ -45,7 +46,7 @@ type DNSResponse struct {
 	Question           []DNSQuestion
 	Answer             []DNSRR
 	Authority          []DNSRR
-	Extra              []DNSRR
+	Extra              []dns.RR
 	Truncated          bool
 	RecursionDesired   bool
 	RecursionAvailable bool

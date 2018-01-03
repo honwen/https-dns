@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/miekg/dns"
 	"github.com/golang/glog"
 	"golang.org/x/net/proxy"
 
@@ -33,8 +34,9 @@ type GDNSQuestion DNSQuestion
 // DNSQuestion transforms a GDNSQuestion to a DNSQuestion and returns it.
 func (r GDNSQuestion) DNSQuestion() DNSQuestion {
 	return DNSQuestion{
-		Name: r.Name,
-		Type: r.Type,
+		Name:   r.Name,
+		Type:   r.Type,
+		Subnet: r.Subnet,
 	}
 }
 
@@ -245,7 +247,11 @@ func (g GDNSProvider) newRequest(q DNSQuestion) (*http.Request, error) {
 
 	qry.Add("name", q.Name)
 	qry.Add("type", dnsType)
-	qry.Add("edns_client_subnet", g.opts.EDNS)
+	if q.Subnet == nil {
+		qry.Add("edns_client_subnet", g.opts.EDNS)
+	} else {
+		qry.Add("edns_client_subnet", q.Subnet.Address.String())
+	}
 
 	httpreq.URL.RawQuery = qry.Encode()
 
@@ -285,12 +291,39 @@ func (g GDNSProvider) Query(q DNSQuestion) (*DNSResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	extra := []dns.RR{}
+
+	if q.Subnet != nil {
+		ip, ipNet, err := net.ParseCIDR(dnsResp.EDNSClientSubnet)
+		if err == nil {
+			size, _ := ipNet.Mask.Size()
+			subnet := new(dns.EDNS0_SUBNET)
+			subnet.SourceNetmask = q.Subnet.SourceNetmask
+			subnet.Code = dns.EDNS0SUBNET
+			subnet.Address = ip
+			subnet.SourceScope = uint8(size)
+			if ip.To4().Equal(ip) {
+				subnet.Family = 1
+			} else {
+				subnet.Family = 2
+			}
+
+			edns := new(dns.OPT)
+			edns.Hdr.Name = "."
+			edns.Hdr.Rrtype = dns.TypeOPT
+			edns.SetUDPSize(512)
+			edns.Option = append(edns.Option, subnet)
+
+			extra = append(extra, edns)
+		}
+	}
+
 
 	return &DNSResponse{
 		Question:           dnsResp.Question.DNSQuestions(),
 		Answer:             dnsResp.Answer.DNSRRs(),
 		Authority:          dnsResp.Authority.DNSRRs(),
-		Extra:              dnsResp.Additional.DNSRRs(),
+		Extra:              extra,
 		Truncated:          dnsResp.TC,
 		RecursionDesired:   dnsResp.RD,
 		RecursionAvailable: dnsResp.RA,
