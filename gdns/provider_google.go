@@ -250,7 +250,7 @@ func (g GDNSProvider) newRequest(q DNSQuestion) (*http.Request, error) {
 	if q.Subnet == nil {
 		qry.Add("edns_client_subnet", g.opts.EDNS)
 	} else {
-		qry.Add("edns_client_subnet", q.Subnet.Address.String())
+		qry.Add("edns_client_subnet", fmt.Sprintf("%s/%d", q.Subnet.Address.String(), q.Subnet.SourceNetmask))
 	}
 
 	httpreq.URL.RawQuery = qry.Encode()
@@ -292,7 +292,7 @@ func (g GDNSProvider) Query(q DNSQuestion) (*DNSResponse, error) {
 		return nil, err
 	}
 	extra := []dns.RR{}
-
+	
 	if q.Subnet != nil {
 		ip, ipNet, err := net.ParseCIDR(dnsResp.EDNSClientSubnet)
 		if err == nil {
