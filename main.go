@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -54,11 +56,15 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "google-https-dns"
 	app.Usage = "A DNS-protocol proxy for Google's DNS-over-HTTPS service."
-	app.Version = version
+	app.Version = fmt.Sprintf("Git:[%s] (%s)", strings.ToUpper(version), runtime.Version())
 	// app.HideVersion = true
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -117,6 +123,10 @@ func main() {
 		if 0 == len(listenProtocols) {
 			cli.ShowAppHelp(c)
 			os.Exit(0)
+		}
+
+		if !strings.HasPrefix(version, "MISSING") {
+			fmt.Fprintf(os.Stderr, "%s %s\n", strings.ToUpper(c.App.Name), c.App.Version)
 		}
 
 		gdnsOPT.PROXY = c.String("proxy")
