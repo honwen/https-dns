@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/chenhw2/google-https-dns/gdns"
+	"github.com/chenhw2/https-dns/gdns"
 	"github.com/golang/glog"
 	"github.com/miekg/dns"
 	"github.com/urfave/cli"
@@ -62,7 +62,7 @@ func init() {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "google-https-dns"
+	app.Name = "https-dns"
 	app.Usage = "A DNS-protocol proxy for Google's DNS-over-HTTPS service."
 	app.Version = fmt.Sprintf("Git:[%s] (%s)", strings.ToUpper(version), runtime.Version())
 	// app.HideVersion = true

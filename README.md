@@ -1,5 +1,5 @@
 ### Source
-- https://github.com/chenhw2/google-https-dns
+- https://github.com/chenhw2/https-dns
   
 ### Thanks
 - https://github.com/fardog/secureoperator
@@ -7,7 +7,7 @@
 - https://developers.google.com/speed/public-dns/docs/dns-over-https
   
 ### Docker
-- https://hub.docker.com/r/chenhw2/google-https-dns
+- https://hub.docker.com/r/chenhw2/https-dns
   
 ### TODO
 - Currently only Block DNS TYPE:```ANY```
@@ -16,23 +16,23 @@
   
 ### Usage
 ```
-$ docker pull chenhw2/google-https-dns
+$ docker pull chenhw2/https-dns
 
 $ docker run -d \
     -e "ARGS=-d 8.8.8.8 --edns 0.0.0.0/0" \
     -p "5300:5300/udp" \
     -p "5300:5300/tcp" \
-    chenhw2/google-https-dns
+    chenhw2/https-dns
 
 ```
 ### Help
 ```
-$ docker run --rm chenhw2/google-https-dns -h
+$ docker run --rm chenhw2/https-dns -h
 NAME:
-   google-https-dns - A DNS-protocol proxy for Google's DNS-over-HTTPS service.
+   https-dns - A DNS-protocol proxy for Google's DNS-over-HTTPS service.
 
 USAGE:
-   google-https-dns [global options] command [command options] [arguments...]
+   https-dns [global options] command [command options] [arguments...]
 
 VERSION:
    MISSING build version [git hash]

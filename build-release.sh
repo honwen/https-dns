@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name='google-https-dns'
+name='https-dns'
 
 MD5='md5sum'
 if [[ "$(uname)" == 'Darwin' ]]; then
