@@ -3,7 +3,8 @@
   
 ### Thanks
 - https://github.com/fardog/secureoperator
-- https://github.com/jackyyf/go-shadowsocks2
+- https://github.com/shadowsocks/go-shadowsocks2
+- https://developers.cloudflare.com/1.1.1.1/dns-over-https/
 - https://developers.google.com/speed/public-dns/docs/dns-over-https
   
 ### Docker

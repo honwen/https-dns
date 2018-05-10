@@ -77,13 +77,17 @@ func main() {
 			Usage: "Proxy (SOCKS or SHADOWSOCKS) Server for HTTP GET",
 		},
 		cli.StringFlag{
-			Name:  "endpoint",
-			Value: "https://dns.google.com/resolve",
-			Usage: "Google DNS-over-HTTPS endpoint url",
+			Name:  "endpoint, ep",
+			Value: "Google",
+			Usage: "Google or Cloudflare",
+		},
+		cli.StringFlag{
+			Name:  "endpoint-uri, epuri",
+			Usage: "DNS-over-HTTPS endpoint url",
 		},
 		cli.StringSliceFlag{
-			Name:  "endpoint-ips, eip",
-			Usage: "IPs of the Google DNS-over-HTTPS endpoint; if provided, endpoint lookup skip",
+			Name:  "endpoint-ip, epip",
+			Usage: "IPs of the DNS-over-HTTPS endpoint; if provided, endpoint lookup skip",
 		},
 		cli.StringSliceFlag{
 			Name:  "dns-servers, d",
@@ -113,7 +117,6 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		glogGangstaShim(c)
 		listenAddress = c.String("listen")
-		gdnsEndPT = c.String("endpoint")
 		if c.Bool("tcp") {
 			listenProtocols = append(listenProtocols, "tcp")
 		}
@@ -134,7 +137,7 @@ func main() {
 		gdnsOPT.Pad = !c.Bool("no-pad")
 		gdnsOPT.Secure = !c.Bool("insecure")
 
-		for _, eip := range c.StringSlice("endpoint-ips") {
+		for _, eip := range c.StringSlice("endpoint-ip") {
 			if ip := net.ParseIP(eip); ip == nil {
 				glog.V(LERROR).Infof("%+v", fmt.Errorf("unable to parse IP from string %s", eip))
 			} else {
@@ -152,6 +155,20 @@ func main() {
 		}
 		glog.V(LDEBUG).Infof("DNSServers%+v", gdnsOPT.DNSServers)
 
+		gdnsEndPT = c.String("endpoint-uri")
+		if 0 == len(gdnsEndPT) {
+			switch strings.ToUpper(c.String("endpoint")) {
+			default:
+				fallthrough
+			case "GOOGLE":
+				gdnsEndPT = `https://dns.google.com/resolve`
+			case "CLOUDFLARE":
+				gdnsEndPT = `https://cloudflare-dns.com/dns-query?ct=application/dns-json`
+				if 0 == len(gdnsOPT.EndpointIPs) {
+					gdnsOPT.EndpointIPs = []net.IP{net.ParseIP("1.1.1.1"), net.ParseIP("1.0.0.1")}
+				}
+			}
+		}
 		return nil
 	}
 	app.Flags = append(app.Flags, glogGangstaFlags...)

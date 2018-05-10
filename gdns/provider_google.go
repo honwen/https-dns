@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/miekg/dns"
 	"github.com/golang/glog"
+	"github.com/miekg/dns"
 	"golang.org/x/net/proxy"
 
-	ss "github.com/jackyyf/go-shadowsocks2/proxy"
+	ss "github.com/chenhw2/go-shadowsocks2/proxy"
 )
 
 const (
@@ -292,7 +292,7 @@ func (g GDNSProvider) Query(q DNSQuestion) (*DNSResponse, error) {
 		return nil, err
 	}
 	extra := []dns.RR{}
-	
+
 	if q.Subnet != nil {
 		ip, ipNet, err := net.ParseCIDR(dnsResp.EDNSClientSubnet)
 		if err == nil {
@@ -317,7 +317,6 @@ func (g GDNSProvider) Query(q DNSQuestion) (*DNSResponse, error) {
 			extra = append(extra, edns)
 		}
 	}
-
 
 	return &DNSResponse{
 		Question:           dnsResp.Question.DNSQuestions(),
